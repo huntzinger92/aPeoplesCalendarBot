@@ -8,9 +8,7 @@ from env import twitterApiSecretKey
 # from env import twitterBearerToken
 from env import twitterAccessToken
 from env import twitterAccessTokenSecret
-from utils.getDateFromUser import getDateFromUser
-from utils.getTestModeFromUser import getTestModeFromUser
-from postEventsToReddit import postEventsToReddit
+from nltk.tokenize import sent_tokenize
 
 #authenticate with the twit
 auth = tweepy.OAuthHandler(twitterApiKey, twitterApiSecretKey)
@@ -39,7 +37,7 @@ def stringToSlug(str):
 # todayEvents: apcEvent[], testMode: boolean
 def postEventsToTwitter(todayEvents, testMode):
     for apcEvent in todayEvents:
-        tweetBody, title, imgSrc = itemgetter('otd', 'title', 'imgSrc')(apcEvent)
+        tweetBody, title, description, imgSrc, NSFW, imgAltText = itemgetter('otd', 'title', 'description', 'imgSrc', 'NSFW', 'imgAltText')(apcEvent)
         # do the submit stuff for every event in the category
         slugifiedEventName = stringToSlug(title)
         if len(tweetBody) > 238:
@@ -48,11 +46,12 @@ def postEventsToTwitter(todayEvents, testMode):
             return
         tweetBody += " https://www.apeoplescalendar.org/calendar/events/" + slugifiedEventName
 
-        print('event tweet:')
+        print('posting tweet:')
         print(tweetBody[:240])
         print('\n')
 
         if not testMode:
+            topLevelTweet = ''
             # if we have image
             if imgSrc:
                 url = 'https://www.apeoplescalendar.org{}'.format(imgSrc)
@@ -60,12 +59,66 @@ def postEventsToTwitter(todayEvents, testMode):
                 image = imgTuple[0]
                 try:
                     media = api.media_upload(image)
-                    api.update_status(status=tweetBody, media_ids=[media.media_id])
+                    api.create_media_metadata(media.media_id, alt_text=imgAltText)
+                    topLevelTweet = api.update_status(status=tweetBody, media_ids=[media.media_id], possibly_sensitive=NSFW)
                 except:
                     # bug in the Tweepy where some image files can't be found
                     # just do the description
                     print('posting event photo to twitter caused error, posting text instead')
-                    api.update_status(status=tweetBody)
+                    topLevelTweet = api.update_status(status=tweetBody, possibly_sensitive=NSFW)
             else:
                 #if no image, just do the description
-                api.update_status(status=tweetBody)
+                topLevelTweet = api.update_status(status=tweetBody, possibly_sensitive=NSFW)
+            try:
+                postDescriptionThread(topLevelTweet.id, description)
+            except Exception as e:
+                print('something horrible happened when trying to post description thread:')
+                print(tweetBody)
+                print(e)
+
+# this function breaks down the event description by comma,
+# then builds up and posts an array of tweets in the form of a thread
+def postDescriptionThread(initialTweetId, description):
+    # break down description by comma (some sentences could be longer than 240 characters)
+    descriptionSentences = sent_tokenize(description)
+    descriptionByComma = []
+    for index, sentence in enumerate(descriptionSentences):
+        # many event descriptions repeat the on this day sentence in the original tweet
+        # if first sentence contains an on this day statement, don't use it
+        if index == 0 and re.search('(O|o)n this day', sentence):
+            continue
+        paddedSentence = '%s ' % (sentence)
+        splitByComma = paddedSentence.split(',')
+        # if you can't understand this either, blame orestisf on stackoverflow
+        withCommaAddedBackIn = [substr + ',' for substr in splitByComma[:-1]] + [splitByComma[-1]]
+        for clause in withCommaAddedBackIn:
+            descriptionByComma.append(clause)
+
+    descriptionTweets = []
+    nextTweet = '@apeoplescal '
+    for index, clause in enumerate(descriptionByComma):
+        onLastClause = index == len(descriptionByComma) - 1
+        nextTweetWithClause = '%s%s' % (nextTweet, clause)
+        # if too big for a tweet, push the current nextTweet to array and set up the next tweet
+        if len(nextTweetWithClause) > 252:
+            descriptionTweets.append(nextTweet)
+            nextTweet = '@apeoplescal %s' % (clause)
+            # if we had to reset nextTweet and we're on last clause, we need to append here, as elif will not be hit
+            if onLastClause:
+                descriptionTweets.append(nextTweetWithClause)
+        # if we are on the last clause, append it to the list
+        elif onLastClause:
+            descriptionTweets.append(nextTweetWithClause)
+        # reset nextTweet and build up until we hit character limit or end of clause list again
+        else:
+            nextTweet = nextTweetWithClause
+
+    currentTweetIdToReplyTo = initialTweetId
+    try:
+        for tweet in descriptionTweets:
+            currentTweet = api.update_status(tweet, in_reply_to_status_id=currentTweetIdToReplyTo)
+            currentTweetIdToReplyTo = currentTweet.id
+    except Exception as e:
+        print('something horrible happened when trying to post description thread:')
+        print(e)
+

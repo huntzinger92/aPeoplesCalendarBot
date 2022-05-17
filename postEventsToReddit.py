@@ -84,7 +84,7 @@ def formatDescription(apcEvent, todayString):
     else:
         imageTranscriptionMessage = '''\n\n**Image Transcription**: Looks like we don't have an image caption for this event yet. Feel free to suggest one below.''' 
     # format the comment using data from the apcEvent object
-    body = '''**%s**%s\n\n%\n\nRead more:\n\n%s%s\n\n%s%s''' % (title, imageTranscriptionMessage, description, infoSrc, pdfWarning1, link, pdfWarning2)
+    body = '''**%s**%s\n\n%s\n\nRead more:\n\n%s%s\n\n%s%s''' % (title, imageTranscriptionMessage, description, infoSrc, pdfWarning1, link, pdfWarning2)
     return body
 
 def submitComment(postedEvent, todayString):
