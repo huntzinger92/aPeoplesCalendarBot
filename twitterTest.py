@@ -18,9 +18,9 @@ auth.set_access_token(twitterAccessToken, twitterAccessTokenSecret)
 
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-otdStatement = "Earl Russell Browder, born on this day in 1891, was an American political activist, author, and well-known leader within the Communist Party USA (CPUSA), serving as its General Secretary from 1930 to 1945."
+otdStatement = "On this day in 1871, the Paris Commune, a hotbed of radical working class politics and watershed moment in revolutionary anti-capitalist history, was crushed by the French National Army. 20,000 people were killed and 44,000 arrested."
 
-longDescription = "Earl Russell Browder, born on this day in 1891, was an American political activist, author, and well-known leader within the Communist Party USA (CPUSA), serving as its General Secretary from 1930 to 1945.\n\nBrowder's primary political rival within the Party was William Z. Foster; the two sharply disagreed on what the organization's stance towards the Roosevelt administration should be. Foster was the more radical of the two, while Browder endorsed Roosevelt's \"New Deal\", offering critical support to his administration.\n\nBrowder was the chairman of CPUSA when the Molotov-Ribbentrop Pact (an agreement of non-aggression between the Soviet and Nazi governments), and the Party quickly changed from being militantly anti-fascist to only engaging in moderate criticism of Germany. CPUSA's membership declined by 15% in the following year.\n\nBrowder was an advocate for a cooperative relationship between the Soviet Union and the United States after World War II, and was sharply criticized for this by the French Communist Party, later revealed to have done so on orders from Moscow in the \"Duclos Letter\".\n\nDue to the domestic Red Scare in the U.S. and Browder's ambitions clashing with the Soviet agenda, Browder was expelled from the Communist Party on February 5th, 1946."
+longDescription = "On this day in 1871, the Paris Commune, a hotbed of radical working class politics and watershed moment in revolutionary anti-capitalist history, was crushed by the French National Army. 20,000 people were killed and 44,000 arrested.\n\nThe Paris Commune was a radical socialist government that had formed in Paris a few months earlier, on March 18th, 1871. The Commune developed a set of progressive, secular, and social democratic policies, although its existence was too brief to implement all of them.\n\nAmong these policies were the separation of church and state, abolition of child labor, abolishment of interest on some forms of debt, as well as the right of employees to take over and run an enterprise if it was deserted by its original owner.\n\nThe Commune was attacked by the French National Army on May 21st, 1871, beginning the so-called \"Bloody Week\" which defeated the revolutionary movement. After crushing the rebellion, the French government imprisoned approximately 44,000 people for their role in the uprising. Estimated deaths from the fighting are around 20,000.\n\nThe Paris Commune was analyzed by many communist thinkers, including Karl Marx, who identified it as a dictatorship of the proletariat. Vladimir Lenin danced in the snow when the newly formed Bolshevik government lasted longer than the Paris Commune.\n\nThe episode inspired similar revolutionary attempts around the world, including in Moscow (1905), Petrograd (1917), and Shanghai (1927 and 1967)."
 
 def twitterTest():
     # url = 'https://www.apeoplescalendar.org/assets/eventPhotos/Individuals/alexandraKollontai.jpg'
@@ -29,15 +29,19 @@ def twitterTest():
     # media = api.media_upload(image)
     # initialTweet = api.update_status(otdStatement, media_ids=[media.media_id])
 
-    # break down description by comma (some sentences could be longer than 240 characters)
+    # break down description into sentences
     descriptionSentences = sent_tokenize(longDescription)
-    # print('descriptionSentences')
-    # print(descriptionSentences)
+    print('descriptionSentences')
+    print(descriptionSentences)
+    # break down description by comma (some sentences could be longer than 240 characters)
     descriptionByComma = []
     for index, sentence in enumerate(descriptionSentences):
-        # many event descriptions repeat the on this day sentence in the original tweet
-        # if first sentence contains an on this day statement, don't use it
+        # many event descriptions repeat the on this day sentence used in the original tweet
+        # if first sentence contains an on this day statement, don't use it in the description
         if index == 0 and re.search('(O|o)n this day', sentence):
+            continue
+        # if any of the first three sentences duplicate something in the otd statement, don't use it in the description
+        if index < 3 and sentence in otdStatement:
             continue
         paddedSentence = '%s ' % (sentence)
         splitByComma = paddedSentence.split(',')

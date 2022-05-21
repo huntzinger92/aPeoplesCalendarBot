@@ -70,7 +70,7 @@ def postEventsToTwitter(todayEvents, testMode):
                 #if no image, just do the description
                 topLevelTweet = api.update_status(status=tweetBody, possibly_sensitive=NSFW)
             try:
-                postDescriptionThread(topLevelTweet.id, description)
+                postDescriptionThread(topLevelTweet.id, description, tweetBody)
             except Exception as e:
                 print('something horrible happened when trying to post description thread:')
                 print(tweetBody)
@@ -78,17 +78,20 @@ def postEventsToTwitter(todayEvents, testMode):
 
 # this function breaks down the event description by comma,
 # then builds up and posts an array of tweets in the form of a thread
-def postDescriptionThread(initialTweetId, description):
+def postDescriptionThread(initialTweetId, description, otdStatement):
     # break down description by comma (some sentences could be longer than 240 characters)
     descriptionSentences = sent_tokenize(description)
     descriptionByComma = []
     for index, sentence in enumerate(descriptionSentences):
         # many event descriptions repeat the on this day sentence in the original tweet
-        # if first sentence contains an on this day statement, don't use it
+        # if first sentence contains an on this day statement, don't use it in the description
         if index == 0 and re.search('(O|o)n this day', sentence):
             continue
+        # if any of the first three sentences duplicate something in the otd statement, don't use it in the description
+        if index < 3 and sentence in otdStatement:
+            continue
         paddedSentence = '%s ' % (sentence)
-        # split sentences by comma that isn't part of number (i.e., not 1,234)
+        # split sentences by comma that isn't part of number (i.e., don't split 1,234)
         splitByComma = re.split(r',(?!/d)', paddedSentence)
         # add comma delimiter back in. if you can't understand this either, blame orestisf on stackoverflow
         withCommaAddedBackIn = [substr + ',' for substr in splitByComma[:-1]] + [splitByComma[-1]]
@@ -106,7 +109,7 @@ def postDescriptionThread(initialTweetId, description):
             nextTweet = '@apeoplescal %s' % (clause)
             # if we had to reset nextTweet and we're on last clause, we need to append here, as elif will not be hit
             if onLastClause:
-                descriptionTweets.append(nextTweetWithClause)
+                descriptionTweets.append(nextTweet)
         # if we are on the last clause, append it to the list
         elif onLastClause:
             descriptionTweets.append(nextTweetWithClause)
