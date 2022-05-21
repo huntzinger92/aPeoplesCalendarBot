@@ -29,12 +29,12 @@ def postEventsToReddit(todayEvents, todayString, testMode):
             print('\n')
         return
     else:
-        postedEvents = submitEvents(todayEvents)
+        postedEvents = submitEvents(todayEvents, todayString)
         submitComments(postedEvents, todayString)
 
 
 # todayEvents: eventObjs[]
-def submitEvents(todayEvents):
+def submitEvents(todayEvents, todayString):
     # a list of posted events, used by comment posting function to find the thread to comment on
     eventList = []
     for apcEvent in todayEvents:
@@ -50,11 +50,11 @@ def submitEvents(todayEvents):
                 print("photo won't load, creating a self text post")
                 print("Error:")
                 print(e)
-                selfText = formatDescription(apcEvent)
+                selfText = formatDescription(apcEvent, todayString)
                 reddit.subreddit(apcSubredditName).submit(otd, selftext=selfText, flair_id=flairDict[category],  nsfw=NSFW)
         else:
             #selftext submission when no image
-            selfText = formatDescription(apcEvent)
+            selfText = formatDescription(apcEvent, todayString)
             reddit.subreddit(apcSubredditName).submit(otd, selftext=selfText, flair_id=flairDict[category],  nsfw=NSFW)
         eventList.append((apcEvent, otd))
     return eventList

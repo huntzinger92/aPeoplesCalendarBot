@@ -20,11 +20,11 @@ api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 def stringToSlug(str):
     #credit to https://gist.github.com/codeguy/6684588
     str = re.sub('^\s+|\s+$', '', str)
-    str = str.lower();
+    str = str.lower()
 
     #remove accents, swap ñ for n, etc
-    from_ = "àáäâèéëêìíïîòóöôōùúüûñç·/_,:;";
-    to = "aaaaeeeeiiiiooooouuuunc------";
+    from_ = "àáäâèéëêìíïîòóöôōùúüûñç·/_,:;"
+    to = "aaaaeeeeiiiiooooouuuunc------"
     for i in range(0, len(from_)):
         str = re.sub(from_[i], to[i], str)
 
@@ -88,8 +88,9 @@ def postDescriptionThread(initialTweetId, description):
         if index == 0 and re.search('(O|o)n this day', sentence):
             continue
         paddedSentence = '%s ' % (sentence)
-        splitByComma = paddedSentence.split(',')
-        # if you can't understand this either, blame orestisf on stackoverflow
+        # split sentences by comma that isn't part of number (i.e., not 1,234)
+        splitByComma = re.split(r',(?!/d)', paddedSentence)
+        # add comma delimiter back in. if you can't understand this either, blame orestisf on stackoverflow
         withCommaAddedBackIn = [substr + ',' for substr in splitByComma[:-1]] + [splitByComma[-1]]
         for clause in withCommaAddedBackIn:
             descriptionByComma.append(clause)
