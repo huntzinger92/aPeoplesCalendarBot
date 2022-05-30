@@ -61,10 +61,11 @@ def postEventsToTwitter(todayEvents, testMode):
                     media = api.media_upload(image)
                     api.create_media_metadata(media.media_id, alt_text=imgAltText)
                     topLevelTweet = api.update_status(status=tweetBody, media_ids=[media.media_id], possibly_sensitive=NSFW)
-                except:
+                except Exception as error:
                     # bug in the Tweepy where some image files can't be found
                     # just do the description
                     print('posting event photo to twitter caused error, posting text instead')
+                    print(error)
                     topLevelTweet = api.update_status(status=tweetBody, possibly_sensitive=NSFW)
             else:
                 #if no image, just do the description
@@ -92,7 +93,7 @@ def postDescriptionThread(initialTweetId, description, otdStatement):
             continue
         paddedSentence = '%s ' % (sentence)
         # split sentences by comma that isn't part of number (i.e., don't split 1,234)
-        splitByComma = re.split(r',(?!/d)', paddedSentence)
+        splitByComma = re.split(r',(?!\d)', paddedSentence)
         # add comma delimiter back in. if you can't understand this either, blame orestisf on stackoverflow
         withCommaAddedBackIn = [substr + ',' for substr in splitByComma[:-1]] + [splitByComma[-1]]
         for clause in withCommaAddedBackIn:

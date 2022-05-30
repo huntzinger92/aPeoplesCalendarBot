@@ -18,9 +18,9 @@ auth.set_access_token(twitterAccessToken, twitterAccessTokenSecret)
 
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-otdStatement = "On this day in 1871, the Paris Commune, a hotbed of radical working class politics and watershed moment in revolutionary anti-capitalist history, was crushed by the French National Army. 20,000 people were killed and 44,000 arrested."
+otdStatement = "The Indian Removal Act, signed into law on this day in 1830, provided the legal authority for the president to force indigenous peoples west of the Mississippi River, leading to the \"Trail of Tears\", which killed more than 10,000."
 
-longDescription = "On this day in 1871, the Paris Commune, a hotbed of radical working class politics and watershed moment in revolutionary anti-capitalist history, was crushed by the French National Army. 20,000 people were killed and 44,000 arrested.\n\nThe Paris Commune was a radical socialist government that had formed in Paris a few months earlier, on March 18th, 1871. The Commune developed a set of progressive, secular, and social democratic policies, although its existence was too brief to implement all of them.\n\nAmong these policies were the separation of church and state, abolition of child labor, abolishment of interest on some forms of debt, as well as the right of employees to take over and run an enterprise if it was deserted by its original owner.\n\nThe Commune was attacked by the French National Army on May 21st, 1871, beginning the so-called \"Bloody Week\" which defeated the revolutionary movement. After crushing the rebellion, the French government imprisoned approximately 44,000 people for their role in the uprising. Estimated deaths from the fighting are around 20,000.\n\nThe Paris Commune was analyzed by many communist thinkers, including Karl Marx, who identified it as a dictatorship of the proletariat. Vladimir Lenin danced in the snow when the newly formed Bolshevik government lasted longer than the Paris Commune.\n\nThe episode inspired similar revolutionary attempts around the world, including in Moscow (1905), Petrograd (1917), and Shanghai (1927 and 1967)."
+longDescription = "The Indian Removal Act, signed into law on this day in 1830, provided the legal authority for the president to force indigenous peoples west of the Mississippi River, leading to the \"Trail of Tears\", which killed more than 10,000.\n\nThe law is an example of the systematic genocide brought against indigenous peoples by the U.S. government because it discriminated against them in such a way as to effectively guarantee the death of vast numbers of their population. The Act was signed into law by Andrew Jackson and was strongly enforced by his and his successors' administrations.\n\nThe enforcement of the Indian Removal Act directly led to the \"Trail of Tears\", which killed over 10,000 indigenous peoples. Although some tribes left peacefully, others fought back, leading to the Second Seminole War of 1835."
 
 def twitterTest():
     # url = 'https://www.apeoplescalendar.org/assets/eventPhotos/Individuals/alexandraKollontai.jpg'
@@ -31,8 +31,8 @@ def twitterTest():
 
     # break down description into sentences
     descriptionSentences = sent_tokenize(longDescription)
-    print('descriptionSentences')
-    print(descriptionSentences)
+    # print('descriptionSentences')
+    # print(descriptionSentences)
     # break down description by comma (some sentences could be longer than 240 characters)
     descriptionByComma = []
     for index, sentence in enumerate(descriptionSentences):
@@ -41,16 +41,20 @@ def twitterTest():
         if index == 0 and re.search('(O|o)n this day', sentence):
             continue
         # if any of the first three sentences duplicate something in the otd statement, don't use it in the description
+        if index < 3:
+            print(sentence)
+            print(sentence in otdStatement)
         if index < 3 and sentence in otdStatement:
             continue
         paddedSentence = '%s ' % (sentence)
-        splitByComma = paddedSentence.split(',')
+        # split sentences by comma that isn't part of number (i.e., don't split 1,234)
+        splitByComma = re.split(r',(?!\d)', paddedSentence)
         # if you can't understand this either, blame orestisf on stackoverflow
         withCommaAddedBackIn = [substr + ',' for substr in splitByComma[:-1]] + [splitByComma[-1]]
         for clause in withCommaAddedBackIn:
             descriptionByComma.append(clause)
-    # print('descriptionByComma')
-    # print(descriptionByComma)
+    print('descriptionByComma')
+    print(descriptionByComma)
 
     descriptionTweets = []
     nextTweet = '@apeoplescal '
