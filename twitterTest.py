@@ -18,9 +18,9 @@ auth.set_access_token(twitterAccessToken, twitterAccessTokenSecret)
 
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-otdStatement = "The Indian Removal Act, signed into law on this day in 1830, provided the legal authority for the president to force indigenous peoples west of the Mississippi River, leading to the \"Trail of Tears\", which killed more than 10,000."
+otdStatement = "Assata Shakur, born on this day in 1947, is a revolutionary socialist and former member of the Black Liberation Army (BLA) who became the first woman to be added to the FBI's Most Wanted Terrorists list in 2013."
 
-longDescription = "The Indian Removal Act, signed into law on this day in 1830, provided the legal authority for the president to force indigenous peoples west of the Mississippi River, leading to the \"Trail of Tears\", which killed more than 10,000.\n\nThe law is an example of the systematic genocide brought against indigenous peoples by the U.S. government because it discriminated against them in such a way as to effectively guarantee the death of vast numbers of their population. The Act was signed into law by Andrew Jackson and was strongly enforced by his and his successors' administrations.\n\nThe enforcement of the Indian Removal Act directly led to the \"Trail of Tears\", which killed over 10,000 indigenous peoples. Although some tribes left peacefully, others fought back, leading to the Second Seminole War of 1835."
+longDescription = "Assata Shakur, born on this day in 1947, is a revolutionary socialist and former member of the Black Liberation Army (BLA) who became the first woman to be added to the FBI's Most Wanted Terrorists list in 2013.\n\nShakur grew up in New York City and Wilmington, North Carolina. She became involved in political activism at Borough of Manhattan Community College and City College of New York, participating in sit-ins and civil rights protests.\n\nAfter graduating from college, Shakur briefly joined the Black Panther Party, leading its Harlem chapter. She left the Panthers and joined the Black Liberation Army, a black power group that was inspired by the Viet Cong and Algerian resistance movements and waged guerrilla warfare against the U.S. government from 1970 to 1981. Shakur was one of the targets of the FBI's COINTELPRO program.\n\nAfter being involved in a shootout with New Jersey police officers, Shakur was convicted on multiple counts of assault and murder and sentenced to life in prison. In 1979, BLA members freed her in a bloodless prison escape.\n\nShakur successfully sought political asylum in Cuba, where she still lives today.\n\n\"I didn't know what a fool they had made out of me until I grew up and started to read real history.\"\n\n- Assata Shakur"
 
 def twitterTest():
     # url = 'https://www.apeoplescalendar.org/assets/eventPhotos/Individuals/alexandraKollontai.jpg'
@@ -31,16 +31,24 @@ def twitterTest():
 
     # break down description into sentences
     descriptionSentences = sent_tokenize(longDescription)
-    # print('descriptionSentences')
-    # print(descriptionSentences)
-    # break down description by comma (some sentences could be longer than 240 characters)
-    descriptionByComma = []
+    print('descriptionSentences')
+    print(descriptionSentences)
+    descriptionSentencesWithLineBreak = []
     for index, sentence in enumerate(descriptionSentences):
         # many event descriptions repeat the on this day sentence used in the original tweet
         # if first sentence contains an on this day statement, don't use it in the description
         if index == 0 and re.search('(O|o)n this day', sentence):
             continue
-        # if any of the first three sentences duplicate something in the otd statement, don't use it in the description
+        descriptionSentencesWithLineBreak.append(sentence)
+        # don't add new lines after last sentence
+        if index < len(descriptionSentences) - 1:
+            descriptionSentencesWithLineBreak.append('\n\n')
+    print('descriptionSentencesWithLineBreak')
+    print(descriptionSentencesWithLineBreak)
+    # break down description by comma (some sentences could be longer than 240 characters)
+    descriptionByComma = []
+    for index, sentence in enumerate(descriptionSentencesWithLineBreak):
+        # if any of the first two sentences (including new line between them) duplicate something in the otd statement, don't use it in the description
         if index < 3:
             print(sentence)
             print(sentence in otdStatement)
@@ -64,27 +72,27 @@ def twitterTest():
         onLastClause = index == len(descriptionByComma) - 1
         nextTweetWithClause = '%s%s' % (nextTweet, clause)
         # if too big for a tweet, push the current nextTweet to array and set up the next tweet
-        if len(nextTweetWithClause) > 252:
-            print(nextTweet)
-            print('\n')
+        if len(nextTweetWithClause) > 244:
+            # print(nextTweet)
+            # print('\n')
             descriptionTweets.append(nextTweet)
             nextTweet = '@apeoplescal %s' % (clause)
             # if we had to reset nextTweet and we're on last clause, we need to append here, as elif will not be hit
             if onLastClause:
-                print(nextTweet)
-                print('\n')
+                # print(nextTweet)
+                # print('\n')
                 descriptionTweets.append(nextTweet)
         # if we are on the last clause, append it to the list
         elif onLastClause:
-            print(nextTweet)
-            print('\n')
+            # print(nextTweet)
+            # print('\n')
             descriptionTweets.append(nextTweetWithClause)
         # reset nextTweet and build up until we hit character limit or end of clause list again
         else:
             nextTweet = nextTweetWithClause
 
-    # print('descriptionTweets')
-    # print(descriptionTweets)
+    for tweet in descriptionTweets:
+        print(tweet)
 
     # currentTweetIdToReplyTo = initialTweet.id
     # try:

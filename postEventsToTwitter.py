@@ -129,13 +129,20 @@ def postEventsToTwitter(todayEvents, testMode):
 def postDescriptionThread(initialTweetId, description, otdStatement):
     # break down description by comma (some sentences could be longer than 240 characters)
     descriptionSentences = sent_tokenize(description)
-    descriptionByComma = []
+    descriptionSentencesWithLineBreak = []
     for index, sentence in enumerate(descriptionSentences):
-        # many event descriptions repeat the on this day sentence in the original tweet
+        # many event descriptions repeat the on this day sentence used in the original tweet
         # if first sentence contains an on this day statement, don't use it in the description
         if index == 0 and re.search('(O|o)n this day', sentence):
             continue
-        # if any of the first three sentences duplicate something in the otd statement, don't use it in the description
+        descriptionSentencesWithLineBreak.append(sentence)
+        # don't add new lines after last sentence
+        if index < len(descriptionSentences) - 1:
+            descriptionSentencesWithLineBreak.append('\n\n')
+
+    descriptionByComma = []
+    for index, sentence in enumerate(descriptionSentencesWithLineBreak):
+        # if any of the first two sentences (including new line between them) duplicate something in the otd statement, don't use it in the description
         if index < 3 and sentence in otdStatement:
             continue
         paddedSentence = '%s ' % (sentence)
@@ -153,7 +160,7 @@ def postDescriptionThread(initialTweetId, description, otdStatement):
         onLastClause = index == len(descriptionByComma) - 1
         nextTweetWithClause = '%s%s' % (nextTweet, clause)
         # if too big for a tweet, push the current nextTweet to array and set up the next tweet
-        if len(nextTweetWithClause) > 252:
+        if len(nextTweetWithClause) > 244:
             descriptionTweets.append(nextTweet)
             nextTweet = '@apeoplescal %s' % (clause)
             # if we had to reset nextTweet and we're on last clause, we need to append here, as elif will not be hit
