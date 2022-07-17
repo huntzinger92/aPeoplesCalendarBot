@@ -130,15 +130,21 @@ def postDescriptionThread(initialTweetId, description, otdStatement):
     # break down description by comma (some sentences could be longer than 240 characters)
     descriptionSentences = sent_tokenize(description)
     descriptionSentencesWithLineBreak = []
+    currentSentenceIsPartOfQuote = False
     for index, sentence in enumerate(descriptionSentences):
         # many event descriptions repeat the on this day sentence used in the original tweet
         # if first sentence contains an on this day statement, don't use it in the description
         if index == 0 and re.search('(O|o)n this day', sentence):
             continue
         descriptionSentencesWithLineBreak.append(sentence)
-        # don't add new lines after last sentence
-        if index < len(descriptionSentences) - 1:
-            descriptionSentencesWithLineBreak.append('\n\n')
+        # determine if we need to add a line break after this sentence
+        sentenceOpensOrClosesQuote = sentence.count('"') % 2 != 0
+        if sentenceOpensOrClosesQuote:
+            currentSentenceIsPartOfQuote = not currentSentenceIsPartOfQuote
+        isLastSentence = index == len(descriptionSentences) - 1
+        shouldAddLineBreak = not currentSentenceIsPartOfQuote and not isLastSentence
+        if shouldAddLineBreak:
+            descriptionSentencesWithLineBreak.append('\n')
 
     descriptionByComma = []
     for index, sentence in enumerate(descriptionSentencesWithLineBreak):
