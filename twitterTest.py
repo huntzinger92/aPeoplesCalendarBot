@@ -51,9 +51,9 @@ def twitterTest():
         shouldAddLineBreak = not currentSentenceIsPartOfQuote and not isLastSentence
         # print('shouldAddLineBreak', shouldAddLineBreak)
         if shouldAddLineBreak:
-            descriptionSentencesWithLineBreak.append('\n')
-    print('descriptionSentencesWithLineBreak')
-    print(descriptionSentencesWithLineBreak)
+            descriptionSentencesWithLineBreak.append('\n\n')
+    # print('descriptionSentencesWithLineBreak')
+    # print(descriptionSentencesWithLineBreak)
     # break down description by comma (some sentences could be longer than 240 characters)
     descriptionByComma = []
     for index, sentence in enumerate(descriptionSentencesWithLineBreak):
@@ -63,7 +63,10 @@ def twitterTest():
             # print(sentence in otdStatement)
         if index < 3 and sentence in otdStatement:
             continue
-        paddedSentence = '%s ' % (sentence)
+        paddedSentence = sentence
+        # if current sentence and next sentence are not line breaks, add a space to pad between sentences
+        if sentence != '\n\n' and (index + 1 < len(descriptionSentencesWithLineBreak) and descriptionSentencesWithLineBreak[index + 1] != '\n\n'):
+            paddedSentence = '%s ' % (sentence)
         # split sentences by comma that isn't part of number (i.e., don't split 1,234)
         splitByComma = re.split(r',(?!\d)', paddedSentence)
         # if you can't understand this either, blame orestisf on stackoverflow
@@ -99,6 +102,8 @@ def twitterTest():
         # reset nextTweet and build up until we hit character limit or end of clause list again
         else:
             nextTweet = nextTweetWithClause
+    print('descriptionTweets')
+    print(descriptionTweets)
 
     for tweet in descriptionTweets:
         print(tweet)

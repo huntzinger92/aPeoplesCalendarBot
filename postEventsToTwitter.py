@@ -144,14 +144,17 @@ def postDescriptionThread(initialTweetId, description, otdStatement):
         isLastSentence = index == len(descriptionSentences) - 1
         shouldAddLineBreak = not currentSentenceIsPartOfQuote and not isLastSentence
         if shouldAddLineBreak:
-            descriptionSentencesWithLineBreak.append('\n')
+            descriptionSentencesWithLineBreak.append('\n\n')
 
     descriptionByComma = []
     for index, sentence in enumerate(descriptionSentencesWithLineBreak):
         # if any of the first two sentences (including new line between them) duplicate something in the otd statement, don't use it in the description
         if index < 3 and sentence in otdStatement:
             continue
-        paddedSentence = '%s ' % (sentence)
+        paddedSentence = sentence
+        # if current sentence and next sentence are not line breaks, add a space to pad between sentences
+        if sentence != '\n\n' and (index + 1 < len(descriptionSentencesWithLineBreak) and descriptionSentencesWithLineBreak[index + 1] != '\n\n'):
+            paddedSentence = '%s ' % (sentence)
         # split sentences by comma that isn't part of number (i.e., don't split 1,234)
         splitByComma = re.split(r',(?!\d)', paddedSentence)
         # add comma delimiter back in. if you can't understand this either, blame orestisf on stackoverflow
