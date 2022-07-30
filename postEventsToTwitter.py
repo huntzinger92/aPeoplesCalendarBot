@@ -47,9 +47,12 @@ def uploadPhoto(imgSrc):
     return media
 
 def postEventToTwitter(apcEvent):
-    tweetBody, title, description, imgSrc, NSFW, imgAltText = itemgetter(
+    otd, title, description, imgSrc, NSFW, imgAltText = itemgetter(
             'otd', 'title', 'description', 'imgSrc', 'NSFW', 'imgAltText')(apcEvent)
     slugifiedEventName = stringToSlug(title)
+    # to do: figure out how to get regex to work with .replace so you don't have to do this twice
+    tweetBody = otd.replace('On this day', '#otd')
+    tweetBody = tweetBody.replace('on this day', '#otd')
     tweetBody += " https://www.apeoplescalendar.org/calendar/events/" + slugifiedEventName
 
     topLevelTweet = ''
